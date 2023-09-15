@@ -2,9 +2,9 @@
  * A composable function containing logic related to channels
  */
 
-import { computed, getCurrentInstance, ref } from 'kolibri.lib.vueCompositionApi';
+import { computed, getCurrentInstance, ref, onBeforeUnmount } from 'kolibri.lib.vueCompositionApi';
 import { NetworkLocationResource, RemoteChannelResource } from 'kolibri.resources';
-import { get, set } from '@vueuse/core';
+import { get, set, useTimeoutPoll } from '@vueuse/core';
 import useMinimumKolibriVersion from 'kolibri.coreVue.composables.useMinimumKolibriVersion';
 import useUser from 'kolibri.coreVue.composables.useUser';
 import plugin_data from 'plugin_data';
@@ -16,6 +16,7 @@ import { learnStrings } from '../views/commonLearnStrings';
  * @type {Ref<NetworkLocation|null>}
  */
 const currentDevice = ref(null);
+const networkDevices = ref({});
 
 const { kolibriLibrary$ } = learnStrings;
 
@@ -53,9 +54,23 @@ function fetchDevices() {
         ];
       }
     }
+
+    // Update networkDevices with the new data
+    devices.forEach(obj => {
+      networkDevices.value[obj.instance_id] = obj;
+    });
+
     return devices;
   });
 }
+
+// Start polling
+const fetch = useTimeoutPoll(fetchDevices, 5000, { immediate: true });
+
+// Stop polling
+onBeforeUnmount(() => {
+  fetch.pause();
+});
 
 export const StudioNotAllowedError = 'Cannot access Kolibri Studio';
 
@@ -106,5 +121,6 @@ export default function useDevices(store) {
     instanceId,
     baseurl,
     deviceName,
+    networkDevices,
   };
 }
