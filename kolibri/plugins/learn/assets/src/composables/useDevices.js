@@ -16,7 +16,7 @@ import { learnStrings } from '../views/commonLearnStrings';
  * @type {Ref<NetworkLocation|null>}
  */
 const currentDevice = ref(null);
-const networkDevices = ref({});
+let networkDevices = ref({});
 
 const { kolibriLibrary$ } = learnStrings;
 
@@ -54,23 +54,9 @@ function fetchDevices() {
         ];
       }
     }
-
-    // Update networkDevices with the new data
-    devices.forEach(obj => {
-      networkDevices.value[obj.instance_id] = obj;
-    });
-
     return devices;
   });
 }
-
-// Start polling
-const fetch = useTimeoutPoll(fetchDevices, 5000, { immediate: true });
-
-// Stop polling
-onBeforeUnmount(() => {
-  fetch.pause();
-});
 
 export const StudioNotAllowedError = 'Cannot access Kolibri Studio';
 
@@ -114,6 +100,23 @@ export default function useDevices(store) {
   const instanceId = computedDevice(routingDeviceId, device => device.instance_id);
   const baseurl = computedDevice(routingDeviceId, device => device.base_url);
   const deviceName = computedDevice(routingDeviceId, device => device.device_name);
+
+  async function setNetworkDevices() {
+    const newNetworkDevices = {};
+    const devices = await fetchDevices();
+    for (const device of devices) {
+      newNetworkDevices[device.instance_id] = device;
+    }
+    networkDevices = newNetworkDevices;
+  }
+
+  // Start polling
+  const fetch = useTimeoutPoll(setNetworkDevices, 5000, { immediate: true });
+
+  // Stop polling
+  onBeforeUnmount(() => {
+    fetch.pause();
+  });
 
   return {
     fetchDevices,
