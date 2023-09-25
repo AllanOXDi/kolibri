@@ -16,7 +16,6 @@ import { learnStrings } from '../views/commonLearnStrings';
  * @type {Ref<NetworkLocation|null>}
  */
 const currentDevice = ref(null);
-let networkDevices = ref({});
 
 const { kolibriLibrary$ } = learnStrings;
 
@@ -89,7 +88,7 @@ function computedDevice(routingDeviceId, callback) {
   });
 }
 
-export default function useDevices(store) {
+export function currentDeviceData(store) {
   store = store || getCurrentInstance().proxy.$store;
   const route = computed(() => store && store.state.route);
   const routingDeviceId = computed(() => {
@@ -101,13 +100,27 @@ export default function useDevices(store) {
   const baseurl = computedDevice(routingDeviceId, device => device.base_url);
   const deviceName = computedDevice(routingDeviceId, device => device.device_name);
 
+  return {
+    instanceId,
+    baseurl,
+    deviceName,
+  };
+}
+
+export default function useDevices(store) {
+  const networkDevices = ref({});
+  const isLoading = ref(false);
+  const { instanceId, baseurl, deviceName } = currentDeviceData(store);
+
   async function setNetworkDevices() {
+    isLoading.value = true;
     const newNetworkDevices = {};
     const devices = await fetchDevices();
     for (const device of devices) {
       newNetworkDevices[device.instance_id] = device;
     }
-    networkDevices = newNetworkDevices;
+    networkDevices.value = newNetworkDevices;
+    isLoading.value = false;
   }
 
   // Start polling
@@ -120,6 +133,7 @@ export default function useDevices(store) {
 
   return {
     fetchDevices,
+    isLoading,
     setCurrentDevice,
     instanceId,
     baseurl,
