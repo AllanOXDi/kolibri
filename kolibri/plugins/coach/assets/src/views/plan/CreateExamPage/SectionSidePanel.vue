@@ -9,7 +9,6 @@
     @closePanel="handleClosePanel"
     @shouldFocusFirstEl="findFirstEl()"
   >
-    <p>{{ quizForge.activeSection.value.section_id }}</p>
     <component :is="panel" :ref="$route.name" />
   </SidePanelModal>
 
