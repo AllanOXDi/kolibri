@@ -235,6 +235,7 @@
             key="drag-container"
             :items="quizForge.activeQuestions.value"
             @sort="handleQuestionOrderChange"
+            @dragStart="handledDragStart"
           >
             <transition-group
               tag="div"
@@ -287,9 +288,11 @@
                     </div>
                   </template>
                   <template #content="">
-                    <h1 v-if="isItemExpanded(question.question_id)">
-                      {{ question.title }}
-                    </h1>
+                    <div :style="{ userSelect: dragActive ? 'none!important' : 'text' }">
+                      <h1 v-if="isItemExpanded(question.question_id)">
+                        {{ question.title }}
+                      </h1>
+                    </div>
                   </template>
                 </AccordionItem>
               </Draggable>
@@ -364,12 +367,19 @@
         deleteSectionLabel$,
       };
     },
+    data() {
+      return {
+        dragActive: false,
+      };
+    },
     inject: ['quizForge'],
     computed: {
       accordionStyleOverrides() {
         return {
           color: this.$themeTokens.text + '!important',
           textDecoration: 'none',
+          // Ensure text doesn't get highlighted as we drag
+          userSelect: this.dragActive ? 'none!important' : 'text',
         };
       },
       noKgridItemPadding() {
@@ -452,7 +462,11 @@
         this.quizForge.setActiveSection(get(newSection).section_id);
         this.sectionCreationCount++;
       },
+      handledDragStart() {
+        this.dragActive = true;
+      },
       handleSectionOptionSelect({ label }, section_id) {
+        this.dragActive = false;
         // Always set the active section to the one that is having its side panel opened
         this.quizForge.setActiveSection(section_id);
 
