@@ -1,6 +1,9 @@
 import { createTranslator } from 'kolibri.utils.i18n';
 
 export const enhancedQuizManagementStrings = createTranslator('EnhancedQuizManagementStrings', {
+  selectAllLabel: {
+    message: 'Select all',
+  },
   sectionLabel: {
     message: 'Section',
   },
@@ -73,7 +76,7 @@ export const enhancedQuizManagementStrings = createTranslator('EnhancedQuizManag
   numberOfSelectedQuestions: {
     message: '{count, number} {count, plural, one {question selected} other {questions selected}}',
   },
-  replqceQuestions: {
+  replaceQuestions: {
     message: 'Replace questions',
   },
   changeResources: {
@@ -91,11 +94,8 @@ export const enhancedQuizManagementStrings = createTranslator('EnhancedQuizManag
   expandAll: {
     message: 'Expand all',
   },
-  replace: {
+  replaceAction: {
     message: 'Replace',
-  },
-  replaceQuestions: {
-    message: 'Replace questions',
   },
   replaceQuestionsExplaination: {
     message: 'The new questions you selected will replace the current ones.',
