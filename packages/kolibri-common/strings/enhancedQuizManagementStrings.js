@@ -144,4 +144,10 @@ export const enhancedQuizManagementStrings = createTranslator('EnhancedQuizManag
     message:
       '{ count, number } { count, plural, one { question successfully replaced } other { questions successfully replaced }} ',
   },
+  replaceQuestionDescription: {
+    message: 'Replace with questions from previously selected folders',
+  },
+  chooseOneAnswerLabel: {
+    message: 'Choose 1 answer:',
+  },
 });

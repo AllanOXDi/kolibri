@@ -200,7 +200,7 @@
                 <KIconButton
                   icon="refresh"
                   :tooltip="replaceAction$()"
-                  :disabled="quizForge.selectedActiveQuestions.value.length === 0"
+
                   @click="handleReplaceSelection"
                 />
                 <KIconButton
