@@ -102,6 +102,9 @@
     created() {
       this.quizForge.initializeQuiz();
     },
+    mounted() {
+      this.$store.dispatch('notLoading');
+    },
     $trs: {
       createNewExamLabel: {
         message: 'Create new quiz',
