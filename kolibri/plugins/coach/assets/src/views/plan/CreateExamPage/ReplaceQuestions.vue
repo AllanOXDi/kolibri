@@ -27,7 +27,7 @@
       aria-expanded="false"
       aria-label="toggle-button"
       class="remove-button-style"
-      :style="{ selectAllRow , borderColor }"
+      :style="selectAllRow"
     >
       <div
         class="flex-div"
@@ -117,7 +117,10 @@
                     <div
                       class="check-box-style"
                     >
-                      <KCheckbox />
+                      <KCheckbox
+                        :checked="question.selected"
+                        @change="onCheckboxChange(question.question_id)"
+                      />
                     </div>
                   </div>
 
@@ -198,7 +201,7 @@
 
 
                 <p
-                  :style="chooseAnswerStyle"
+                  :style="{ chooseAnswerStyle , topBorder }"
                 >
                   {{ chooseOneAnswerLabel$() }}
                 </p>
@@ -234,7 +237,7 @@
           :layout8="{ span: 4 }"
           :layout4="{ span: 2 }"
         >
-          <p>{{ numberOfSelectedReplacements$({ count: 4 }) }}</p>
+          <p>{{ numberOfSelectedReplacements$({ count: selectedAnswer.length }) }}</p>
         </KGridItem>
 
         <KGridItem
@@ -329,6 +332,7 @@
             selected: true,
           },
         ],
+        selectedAnswer: [],
       };
     },
     computed: {
@@ -338,17 +342,18 @@
       selectAllRow() {
         return {
           backgroundColor: this.$themePalette.grey.v_50,
-          marginTop: `0.5em`,
         };
       },
-      borderColor() {
-        return `border-top : 2px solid ${this.$themeTokens.fineLine};border-bottom : 2px solid red`;
-      },
-      chooseAnswerStyle() {
+      // borderColor() {
+      //   return `border-top :
+      // 2px solid ${this.$themeTokens.fineLine};
+      // border-bottom : 2px solid red`;
+      // },
+
+      topBorder() {
         return {
-          backgroundColor: this.$themePalette.grey.v_50,
-          fontWeight: 600,
-          padding: `1px solid ${this.$themeTokens.fineLine}`,
+          borderTop: `1px solid ${this.$themeTokens.fineLine}`,
+          borderBottom: `1px solid ${this.$themeTokens.fineLine}`,
         };
       },
       accordionShadow() {
@@ -360,6 +365,15 @@
         return {
           color: this.$themePalette.grey.v_700,
         };
+      },
+    },
+    methods: {
+      onCheckboxChange(questionId) {
+        if (this.selectedAnswer.includes(questionId)) {
+          this.selectedAnswer = this.selectedAnswer.filter(item => item !== questionId);
+        } else {
+          this.selectedAnswer.push(questionId);
+        }
       },
     },
     $trs: {
@@ -437,13 +451,10 @@
   .accordion-panel{
     margin:.5em
   }
-  .select-all-label {
-    margin-top:.5em;
-  }
   .sort-icon-style {
     height:0px;
     float: right;
-    margin-top: -0.5em;
+    margin-top: -1.0em;
   }
   .side-panel-content {
     margin-top: 0;
