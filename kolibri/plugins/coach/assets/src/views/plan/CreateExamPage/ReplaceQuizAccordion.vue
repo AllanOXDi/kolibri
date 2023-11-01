@@ -1,4 +1,5 @@
 <template>
+
   <div :class="isSelected ? 'quiz-answer-row-active' : 'quiz-answer-row' ">
     <KGrid class="row-spacing">
       <KGridItem
@@ -18,10 +19,12 @@
       </KGridItem>
     </KGrid>
   </div>
+
 </template>
 
 
 <script>
+
   export default {
     name: 'ReplaceQuizAccordion',
     props: {
@@ -41,8 +44,9 @@
     },
     mounted() {
       this.$store.dispatch('notLoading');
-    }
+    },
   };
+
 </script>
 
 
@@ -68,12 +72,12 @@
 .quiz-answer-row{
     border: 1px solid #DEDEDE;
     border-radius:4px;
-    margin-bottom:.5em;
+    margin-bottom:.2em;
 }
 .quiz-answer-row-active{
     border: 1px solid#388E3C;
     border-radius:4px;
-    margin-bottom:.5em;
+    margin-bottom:.2em;
 }
 .row-spacing{
     padding:.5em

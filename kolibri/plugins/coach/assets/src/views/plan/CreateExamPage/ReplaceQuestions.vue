@@ -27,7 +27,7 @@
       aria-expanded="false"
       aria-label="toggle-button"
       class="remove-button-style"
-      :style="selectAllRow"
+      :style="{ selectAllRow , borderColor }"
     >
       <div
         class="flex-div"
@@ -107,7 +107,6 @@
                 aria-expanded="false"
                 aria-label="toggle-button"
                 class="remove-button-style"
-                @click="toggleItemState(question.question_id)"
               >
                 <div
                   class="flex-div"
@@ -125,6 +124,7 @@
                   <div class="occupy-remaining-space">
                     <button
                       class="limit-height remove-button-style"
+                      @click="toggleItemState(question.question_id)"
                     >
                       <KGrid>
                         <KGridItem
@@ -198,7 +198,6 @@
 
 
                 <p
-                  class="choose-answer-style"
                   :style="chooseAnswerStyle"
                 >
                   {{ chooseOneAnswerLabel$() }}
@@ -221,17 +220,40 @@
       </template>
     </AccordionContainer>
 
-    <hr
-      class="horizontal-border"
-      :style="horizontalBorderColor"
+    <footer
+      class="bottom-bar-style"
     >
-    <div class="bottom-bar-style">
-      <KButton
-        text="replace"
-        :primary="true"
-        class="float-button-right"
-      />
-    </div>
+      <hr
+        class="horizontal-border"
+        :style="horizontalBorderColor"
+      >
+
+      <KGrid>
+        <KGridItem
+          :layout12="{ span: 6 }"
+          :layout8="{ span: 4 }"
+          :layout4="{ span: 2 }"
+        >
+          <p>{{ numberOfSelectedReplacements$({ count: 4 }) }}</p>
+        </KGridItem>
+
+        <KGridItem
+          :layout12="{ span: 6 }"
+          :layout8="{ span: 4 }"
+          :layout4="{ span: 2 }"
+        >
+          <div
+            class="float-button-right"
+          >
+            <KButton
+              text="replace"
+              :primary="true"
+            />
+          </div>
+        </KGridItem>
+
+      </KGrid>
+    </footer>
 
   </div>
 
@@ -260,6 +282,7 @@
         selectAllLabel$,
         chooseOneAnswerLabel$,
         replaceQuestionDescription$,
+        numberOfSelectedReplacements$,
       } = enhancedQuizManagementStrings;
 
       return {
@@ -268,6 +291,7 @@
         selectAllLabel$,
         replaceQuestionDescription$,
         chooseOneAnswerLabel$,
+        numberOfSelectedReplacements$,
       };
     },
 
@@ -317,15 +341,19 @@
           marginTop: `0.5em`,
         };
       },
+      borderColor() {
+        return `border-top : 2px solid ${this.$themeTokens.fineLine};border-bottom : 2px solid red`;
+      },
       chooseAnswerStyle() {
         return {
           backgroundColor: this.$themePalette.grey.v_50,
-          padding: `0.5em`,
+          fontWeight: 600,
+          padding: `1px solid ${this.$themeTokens.fineLine}`,
         };
       },
       accordionShadow() {
         return {
-          boxShadow: `0 0 0 1px ${this.$themeTokens.fineLine}`,
+          boxShadow: `0 0 0 0px ${this.$themeTokens.fineLine}`,
         };
       },
       sectionTitle() {
@@ -366,7 +394,6 @@
     display: inline-flex;
   }
   .check-box-style {
-    margin-top: 0.5em;
     margin-left: 0.5em;
   }
   .occupy-remaining-space {
@@ -378,7 +405,6 @@
   }
   .right-alignment-style {
     float: right;
-    margin-top: 1em;
   }
   .horizontal-border{
     margin-top:2em;
@@ -399,18 +425,17 @@
     min-width: 160px;
   }
   .float-button-right {
-    float: right;
+    float:right;
   }
   .accordion-panel-open{
-    margin-top:.5em;
+    margin-top:0.2em;
     font-weight: 600;
   }
   .accordion-title{
-    margin-top:.5em;
-    padding-top:.2em;
+    margin-top:0.2em;
   }
   .accordion-panel{
-    margin:.5em;
+    margin:.5em
   }
   .select-all-label {
     margin-top:.5em;
@@ -425,9 +450,17 @@
     padding:0 0 0 0;
   }
   .bottom-bar-style{
-    margin-bottom:4em;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding-bottom:2em;
+    padding-right:4em;
+    background-color: white;
   }
   .chevron-down-style{
     margin-bottom:-1em;
+  }
+  .icon-size{
+    font-size:1.5em;
   }
 </style>
