@@ -1,6 +1,8 @@
 <template>
 
   <div class="sidepanel">
+    <ConfirmQuestionReplacementModal />
+
     <h5 :style="sectionTitle">
       {{ sectionSettings$() }}
     </h5>
@@ -269,6 +271,7 @@
   import AccordionContainer from './AccordionContainer.vue';
   import AccordionItem from './AccordionItem.vue';
   import ReplaceQuizAccordion from './ReplaceQuizAccordion.vue';
+  import ConfirmQuestionReplacementModal from './ConfirmQuestionReplacementModal.vue';
 
   export default {
     name: 'ReplaceQuestions',
@@ -276,6 +279,7 @@
       AccordionContainer,
       AccordionItem,
       ReplaceQuizAccordion,
+      ConfirmQuestionReplacementModal,
     },
     inject: ['quizForge'],
     setup() {
