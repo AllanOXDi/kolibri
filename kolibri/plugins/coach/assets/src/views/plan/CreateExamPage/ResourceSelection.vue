@@ -165,6 +165,11 @@
         viewMoreButtonState,
       };
     },
+    data() {
+      return {
+        ancestors:[],
+      }
+    },
     computed: {
       filteredContentList() {
         const { role } = this.filters;
@@ -256,7 +261,7 @@
       },
       channelsLink() {
         return this.selectionRootLink();
-      },
+      }, 
     },
 
     watch: {
@@ -267,6 +272,14 @@
       bookmarks(newVal, oldVal) {
         this.bookmarksCount = newVal.length;
       },
+      $route(to, from) {
+        const to_topic_id = to.params.topic_id;
+        if (to_topic_id && to.params.topic_id !== from.params.topic_id) {
+          this.setCurrentTopicId(to.params.topic_id);
+        } else {
+          this.setCurrentTopicId(null);
+        }
+      },
     },
     beforeRouteEnter(to, from, next) {
       if (to.params.topic_id) {
@@ -274,6 +287,9 @@
           vm.updateResource();
         });
       }
+    },
+    mounted() {
+      this.setCurrentTopicId(this.isTopicIdSet);
     },
     methods: {
       /** @public */
@@ -368,12 +384,7 @@
         return !is_leaf;
       },
       updateResource() {
-        if (this.$route.params.topic_id) {
-          this.setCurrentTopicId(this.$route.params.topic_id);
-        } else {
-          this.setCurrentTopicId(null);
-        }
-        this.setCurrentTopicId(this.$route.params.topic_id);
+        this.setCurrentTopicId(this.isTopicIdSet);
         /**
         this.fetchTopicResource(this.$route.params.topic_id).then(resource => {
           this.channels = resource.contentList;
@@ -390,21 +401,6 @@
       },
       topicsLink(topicId) {
         return this.topicListingLink({ ...this.$route.params, topicId });
-      },
-    },
-    mounted() {
-      if(this.$route.params.topic_id) {
-        this.setCurrentTopicId(this.$route.params.topic_id);
-      }
-    },
-    watch: {
-      $route(to, from) {
-        const to_topic_id = to.params.topic_id;
-        if (to_topic_id && to.params.topic_id !== from.params.topic_id) {
-          this.setCurrentTopicId(to.params.topic_id);
-        } else {
-          this.setCurrentTopicId(null);
-        }
       },
     },
 
