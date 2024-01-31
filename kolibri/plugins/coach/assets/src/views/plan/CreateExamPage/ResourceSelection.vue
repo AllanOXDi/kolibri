@@ -133,6 +133,7 @@
         //selectFoldersOrExercises$,
         numberOfSelectedResources$,
         numberOfResources$,
+        selectedResourcesInformation$,
       } = enhancedQuizManagementStrings;
 
       // TODO let's not use text for this
@@ -256,6 +257,7 @@
         workingResourcePool,
         addToWorkingResourcePool,
         removeFromWorkingResourcePool,
+        selectedResourcesInformation$
       };
     },
     props: {
@@ -282,12 +284,14 @@
           this.contentList.some(content => workingResourceIds.includes(content.id))
         );
       },
-      selectionMetadata(/*content*/) {
+      // selectionMetadata(content) {
+      //   console.log(content);
+      //   return ()=>{};
         // TODO This should return a function that returns a string telling us how many of this
         // topic's descendants are selected out of its total descendants -- basically answering
         // "How many resources in the working resource_pool are from this topic?"
         // Tracked in https://github.com/learningequality/kolibri/issues/11741
-        return () => { this.workingResourcePool.length };
+        // return () => { this.workingResourcePool.length };
         // let count = 0;
         // let total = 0;
         // if (this.ancestorCounts[content.id]) {
@@ -296,15 +300,15 @@
         // }
         // if (count) {
         //   return this.$tr('selectionInformation', {
-        //     count,
-        //     total,
+        //     '32',
+        //     '45',
         //   });
         // }
         // return '';
         // return function() {
         //   console.log('Dynamic function called');
         // };
-      },
+      // },
 
       getBookmarksLink() {
         return {
@@ -390,19 +394,16 @@
 
         this.$router.replace(this.closePanelRoute);
       },
-      // selectionMetadata(content) {
-      //   if (content.kind === ContentNodeKinds.TOPIC) {
-      //     const count = content.exercises.filter(exercise =>
-      //       Boolean(this.selectedExercises[exercise.id])
-      //     ).length;
-      //     if (count === 0) {
-      //       return '';
-      //     }
-      //     const total = content.exercises.length;
-      //     return this.$tr('total_number', { count, total });
-      //   }
-      //   return '';
-      // },
+      selectionMetadata(content) {
+        if (content.kind === ContentNodeKinds.TOPIC) {
+          const count = this.workingResourcePool.length;
+          const total = content.children.results.length;
+          console.log(content);
+          console.log(this.workingResourcePool);
+          return this.selectedResourcesInformation$({ count, total });
+        }
+        return '';
+      },
     },
   };
 
