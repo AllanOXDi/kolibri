@@ -35,7 +35,7 @@
           :color="$themePalette.grey.v_600"
           :ariaLabel="coreString('savedFromBookmarks')"
           :tooltip="coreString('savedFromBookmarks')"
-          @click="$emit('toggleBookmark')"
+          @click.stop="handleClick('toggleBookmark')"
         />
 
         <KIconButton
@@ -44,7 +44,7 @@
           :color="$themePalette.grey.v_600"
           :ariaLabel="coreString('viewInformation')"
           :tooltip="coreString('viewInformation')"
-          @click="$emit('toggleInfo')"
+          @click.stop=" handleClick('toggleInfo')"
         />
       </div>
     </template>
@@ -87,6 +87,12 @@
       thumbnailScaleType: {
         type: String,
         default: "centerInside",
+      },
+    },
+    methods: {
+      handleClick(action) {
+        console.log("a button was clicked .");
+        this.$emit( action);
       },
     },
   };
