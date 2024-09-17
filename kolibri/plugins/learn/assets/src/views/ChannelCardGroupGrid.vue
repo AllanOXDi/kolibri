@@ -25,6 +25,7 @@
 <script>
 
   import useKResponsiveWindow from 'kolibri-design-system/lib/composables/useKResponsiveWindow';
+  import useCoachMetadataTags from 'kolibri-common/composables/useCoachMetadataTags';
   import useCardLayoutSpan from '../composables/useCardLayoutSpan';
   import useContentLink from '../composables/useContentLink';
   import ChannelCard from './ChannelCard';
@@ -38,10 +39,12 @@
       const { genContentLinkBackLinkCurrentPage } = useContentLink();
       const { windowIsSmall } = useKResponsiveWindow();
       const { layoutSpan } = useCardLayoutSpan();
+      const { metadata } = useCoachMetadataTags();
       return {
         genContentLinkBackLinkCurrentPage,
         windowIsSmall,
         layoutSpan,
+        metadata,
       };
     },
     props: {
@@ -58,6 +61,9 @@
         type: Boolean,
         default: false,
       },
+    },
+    mounted() {
+      console.log("on the right page "+ this.metadata.value);
     },
   };
 
