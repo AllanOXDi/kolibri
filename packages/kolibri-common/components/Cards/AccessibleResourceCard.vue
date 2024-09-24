@@ -58,14 +58,22 @@
 
   import { validateLinkObject } from 'kolibri.utils.validators';
   import commonCoreStrings from 'kolibri.coreVue.mixins.commonCoreStrings';
+  import  { useCoachMetadataTags } from 'kolibri-common/composables/useCoachMetadataTags';
   import LearningActivityIcon from './../ResourceDisplayAndSearch/LearningActivityIcon.vue';
- 
+
   export default {
     name: 'AccessibleResourceCard',
     components: {
       LearningActivityIcon
     },
     mixins: [commonCoreStrings],
+    setup(){
+      const { tags } = useCoachMetadataTags(this.contentNode);
+
+      return {
+        tags,
+      }
+    },
     props: {
       to: {
         type: Object,
@@ -88,6 +96,11 @@
         type: String,
         default: "centerInside",
       },
+    },
+    mounted() {
+      console.log(this.tags);
+      console.log(this.contentNode);
+      console.log("accessible resource card mounted");
     },
   };
 

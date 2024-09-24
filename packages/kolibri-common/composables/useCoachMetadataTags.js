@@ -1,4 +1,5 @@
 import { ref } from 'kolibri.lib.vueCompositionApi';
+import { ContentNodeKinds } from 'kolibri.coreVue.vuex.constants';
 import { ContentNodeResource } from 'kolibri.resources';
 
 export function useCoachMetadataTags(contentNode) {
@@ -10,13 +11,13 @@ export function useCoachMetadataTags(contentNode) {
   };
 
   const getLevelTags = () => {
-    if (!contentNode.levels) return [];
-    return contentNode.levels.slice(0, 3);
+    if (!contentNode.grade_levels) return [];
+    return contentNode.grade_levels.slice(0, 3);
   };
 
   const getLanguageTag = () => {
-    if (!contentNode.languages) return [];
-    return contentNode.languages.length > 1 ? ['Multiple languages'] : [contentNode.languages[0]];
+    if (!contentNode.lang) return [];
+    return contentNode.lang.length > 1 ? ['Multiple languages'] : [contentNode.lang[0]];
   };
 
   const getActivityTag = () => {
@@ -37,13 +38,14 @@ export function useCoachMetadataTags(contentNode) {
     : [contentNode.categories[0]];
   };
 
-  if (contentNode.type === 'channel' || contentNode.type === 'folder') {
+  if (contentNode.kind === ContentNodeKinds.CHANNEL ||
+     contentNode.kind === ContentNodeKinds.TOPIC) {
     tags.value = [
       ...getCategoryTags(),
       ...getLevelTags(),
       ...getLanguageTag(),
     ].slice(0, 7);
-  } else if (contentNode.type === 'resource') {
+  } else if (contentNode.kind === ContentNodeKinds.EXERCISE) {
     tags.value = [
       ...getActivityTag(),
       ...getDurationTag(),
@@ -51,6 +53,14 @@ export function useCoachMetadataTags(contentNode) {
       ...getSpecificCategoryTag(),
       ...getLanguageTag(),
     ].slice(0, 3);
+  }else{
+    tags.value = [
+      ...getActivityTag(),
+      ...getDurationTag(),
+      ...getLevelTags(),
+      ...getSpecificCategoryTag(),
+      ...getLanguageTag(),
+    ]
   }
 
   return tags;
