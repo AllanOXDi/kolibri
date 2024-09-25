@@ -16,6 +16,7 @@
         <LearningActivityIcon
           :kind="contentNode.learning_activities"
         />
+      
       </div>
     </template>
     <template #belowTitle>
@@ -27,8 +28,12 @@
       </div>
     </template>
     <template #footer>
+      <div v-if="Object.keys(getCategoryTags)">
+      <p style="font-size: 12px;">
+      {{  getSpecificCategoryTag() }}
+     </p>
+      </div>
       <div class="footer-icon-style">
-          
         <KIconButton
           icon="bookmarkEmpty"
           size="mini"
@@ -67,13 +72,7 @@
       LearningActivityIcon
     },
     mixins: [commonCoreStrings],
-    setup(){
-      const { tags } = useCoachMetadataTags(this.contentNode);
 
-      return {
-        tags,
-      }
-    },
     props: {
       to: {
         type: Object,
@@ -97,11 +96,24 @@
         default: "centerInside",
       },
     },
-    mounted() {
-      console.log(this.tags);
-      console.log(this.contentNode);
-      console.log("accessible resource card mounted");
+    setup(props){
+      const {  
+        getActivityTag , 
+        getCategoryTags,  
+        getLevelTags, 
+        getLanguageTag,
+        getSpecificCategoryTag
+      } = useCoachMetadataTags(props.contentNode);
+
+      return {
+        getActivityTag,
+        getCategoryTags,
+        getLevelTags,
+        getLanguageTag,
+        getSpecificCategoryTag
+      }
     },
+    
   };
 
 </script>
