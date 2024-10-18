@@ -15,32 +15,34 @@
             />
             <span>{{ className }}</span>
           </div>
-          <KButtonGroup v-if="practiceQuizzesExist">
-            <KButton
-              primary
-              hasDropdown
-              appearance="raised-button"
-              :text="newQuizAction$()"
+          <div class="quiz-group-button-div">
+            <KButtonGroup v-if="practiceQuizzesExist">
+              <KButton
+                primary
+                hasDropdown
+                appearance="raised-button"
+                :text="newQuizAction$()"
+              >
+                <template #menu>
+                  <KDropdownMenu
+                    :options="dropdownOptions"
+                    class="options-btn"
+                    @select="handleSelect"
+                  />
+                </template>
+              </KButton>
+            </KButtonGroup>
+            <div
+              v-else
+              class="button"
             >
-              <template #menu>
-                <KDropdownMenu
-                  :options="dropdownOptions"
-                  class="options-btn"
-                  @select="handleSelect"
-                />
-              </template>
-            </KButton>
-          </KButtonGroup>
-          <div
-            v-else
-            class="button"
-          >
-            <KRouterLink
-              :primary="true"
-              appearance="raised-button"
-              :to="newExamRoute"
-              :text="newQuizAction$()"
-            />
+              <KRouterLink
+                :primary="true"
+                appearance="raised-button"
+                :to="newExamRoute"
+                :text="newQuizAction$()"
+              />
+            </div>
           </div>
         </div>
 

@@ -16,7 +16,7 @@
         ref="printButton"
         icon="print"
         :aria-label="coachString('printReportAction')"
-        @click.prevent="$print()"
+        @click.prevent="printPDF()"
       />
       <KTooltip
         reference="printButton"
@@ -98,6 +98,17 @@
         };
         return route;
       },
+    },
+    methods:{
+      printPDF(){
+        const quizButton = document.getElementsByClassName('quiz-group-button-div');
+        quizButton[0].style.display = 'none';
+        this.$print();
+
+        setTimeout(() => {
+          quizButton[0].style.display = 'block';
+        }, 500);
+      }
     },
     $trs: {
       viewLearners: {
