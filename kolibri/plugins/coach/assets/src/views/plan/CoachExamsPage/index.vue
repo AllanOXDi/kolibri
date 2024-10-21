@@ -7,6 +7,32 @@
         :tabsId="PLAN_TABS_ID"
         :activeTabId="PlanTabs.QUIZZES"
       >
+    <div
+      v-if="channels.length === 0"
+      class="alert"
+      :style="{ backgroundColor: $themePalette.yellow.v_200 }"
+      style="display: flex">
+      <div>
+        <KIcon
+          icon="warning"
+          class="icon"
+          :color="$themePalette.yellow.v_1100"
+        />
+      </div>
+
+      <div class="error-message">
+        <p v-if="channels.length === 0">{{ noResourcesAvailable$() }} </p>
+        <p>
+        <KExternalLink
+          v-if="deviceContentUrl && channels.length === 0"
+          :text="$tr('adminLink')"
+          :href="deviceContentUrl"
+      />
+    </p>
+        
+      </div>
+    </div>
+
         <div class="filter-and-button">
           <p v-if="filteredExams.length && filteredExams.length > 0">
             {{ $tr('totalQuizSize', { size: calcTotalSizeOfVisibleQuizzes }) }}
@@ -21,6 +47,8 @@
             <KButton
               primary
               hasDropdown
+              :key="channels.length"
+              :disabled="hasNoChannels"
               appearance="raised-button"
               :text="newQuizAction$()"
             >
@@ -41,10 +69,12 @@
               :primary="true"
               appearance="raised-button"
               :to="newExamRoute"
+              :disabled="hasNoChannels"
+              :key="channels.length"
               :text="newQuizAction$()"
             />
           </div>
-        </div>
+        </div> 
         <CoreTable>
           <template #headers>
             <th>{{ titleLabel$() }}</th>
@@ -171,10 +201,13 @@
   import { getCurrentInstance, ref } from 'kolibri.lib.vueCompositionApi';
   import CoreTable from 'kolibri.coreVue.components.CoreTable';
   import commonCoreStrings from 'kolibri.coreVue.mixins.commonCoreStrings';
-  import { ExamResource, UserSyncStatusResource } from 'kolibri.resources';
+  import { ExamResource, UserSyncStatusResource, ChannelResource } from 'kolibri.resources';
   import plugin_data from 'plugin_data';
   import bytesForHumans from 'kolibri.utils.bytesForHumans';
   import { mapGetters } from 'kolibri.lib.vuex';
+  import urls from 'kolibri.urls';
+  import useUser from 'kolibri.coreVue.composables.useUser';
+  import { enhancedQuizManagementStrings } from 'kolibri-common/strings/enhancedQuizManagementStrings';
   import { PageNames } from '../../../constants';
   import { PLAN_TABS_ID, PlanTabs } from '../../../constants/tabsConstants';
   import { coachStrings } from '../../common/commonCoachStrings';
@@ -201,6 +234,8 @@
       const showCloseConfirmationModal = ref(false);
       const activeQuiz = ref(null);
       const learnOnlyDevicesExist = ref(false);
+      const { noResourcesAvailable$ } = enhancedQuizManagementStrings;
+      const { canManageContent } = useUser();
 
       initClassInfo().then(() => store.dispatch('notLoading'));
 
@@ -276,10 +311,13 @@
         recipientsLabel$,
         sizeLabel$,
         canNoLongerEditQuizNotice$,
+        noResourcesAvailable$,
         statusLabel$,
         newQuizAction$,
         filterQuizStatus$,
         quizClosedLabel$,
+        canManageContent,
+       
       };
     },
     computed: {
@@ -353,12 +391,39 @@
         }
         return '--';
       },
+      deviceContentUrl() {
+        const deviceContentUrl = urls['kolibri:kolibri.plugins.device:device_management'];
+        if (deviceContentUrl && this.canManageContent) {
+          return `${deviceContentUrl()}#/content`;
+        }
+
+        return '';
+      },
+      hasNoChannels() {
+        console.log('Channels:', this.channels);
+        return !this.channels || this.channels.length === 0;
+      },
+
     },
+    data() {
+      return {
+        channels: [],
+      };
+    },  
     mounted() {
+      this.fetchResources();  // Call the method to fetch the resources
       if (this.$route.query.snackbar) {
         this.$store.dispatch('createSnackbar', this.$route.query.snackbar);
       }
     },
+    created() {
+      this.fetchResources();
+    },
+    watch: {
+  channels() {
+    console.log('Channels array changed:', this.channels);
+  }
+},
     methods: {
       handleOpenQuiz(quizId) {
         const promise = ExamResource.saveModel({
@@ -408,6 +473,19 @@
         nextRoute.name = nextRouteName;
         this.$router.push(nextRoute);
       },
+      fetchResources(){
+        ChannelResource.fetchCollection({
+          getParams: {
+            available: true,
+
+            },
+          }).then(data => {
+            console.log("Fetched channels: ", data);  // Check the output here
+            this.channels = data;
+          }).catch(error => {
+            console.error("Error fetching channels: ", error);
+          });
+      },
     },
     $trs: {
       noExams: {
@@ -427,6 +505,10 @@
         message: 'Total size of quizzes visible to learners: {size}',
         context:
           'Descriptive text at the top of the table that displays the calculated file size of all quiz resources (i.e. 120 MB)',
+      },
+      adminLink: {
+        message: 'Import channels to your device',
+        context: 'Message for admin indicating the possibility of importing channels into Kolibri.',
       },
     },
   };
@@ -453,5 +535,27 @@
   .button-col {
     vertical-align: middle;
   }
+
+  .alert {
+    position: relative;
+    width: 100%;
+    max-width: 1000px;
+    padding-left: 2em;
+    margin: 1em auto 0;
+  }
+
+  .icon {
+    position: absolute;
+    top: 1em;
+    left: 1em;
+    width: 24px;
+    height: 24px;
+  }
+
+  .error-message {
+    margin: 0 1em 0 2em;
+    font-size: 14px;
+  }
+
 
 </style>
