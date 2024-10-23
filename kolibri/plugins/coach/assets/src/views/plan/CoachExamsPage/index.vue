@@ -45,8 +45,6 @@
               v-if="!hasNoChannels"
               primary
               hasDropdown
-              :key="channels.length"
-              :disabled="hasNoChannels"
               appearance="raised-button"
               :text="newQuizAction$()"
             >
@@ -68,7 +66,6 @@
               :primary="true"
               appearance="raised-button"
               :to="newExamRoute"
-              :key="channels.length"
               :text="newQuizAction$()"
             />
           </div>
@@ -93,15 +90,11 @@
               >
                 <td>
                   <KRouterLink
-                     v-if="thereIsContent"
                     :to="$router.getRoute('QuizSummaryPage', { quizId: exam.id })"
                     appearance="basic-link"
                     :text="exam.title"
                     icon="quiz"
                   />
-                  <span v-else>
-                  {{ exam.title }}
-                </span>
                 </td>
 
                 <td>
@@ -319,7 +312,6 @@
         filterQuizStatus$,
         quizClosedLabel$,
         canManageContent,
-       
       };
     },
     computed: {
