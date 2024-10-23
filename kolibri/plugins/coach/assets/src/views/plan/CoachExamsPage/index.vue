@@ -7,31 +7,28 @@
         :tabsId="PLAN_TABS_ID"
         :activeTabId="PlanTabs.QUIZZES"
       >
-    <div
-      v-if="channels.length === 0"
-      class="alert"
-      :style="{ backgroundColor: $themePalette.yellow.v_200 }"
-      style="display: flex">
-      <div>
-        <KIcon
-          icon="warning"
-          class="icon"
-          :color="$themePalette.yellow.v_1100"
-        />
-      </div>
+        <div
+          v-if="channels.length === 0"
+          class="alert banner-spacing"
+          :style="{ backgroundColor: $themePalette.yellow.v_200 }"
+        >
+          <div>
+            <KIcon
+              icon="warning"
+              class="warning-icon"
+              :color="$themePalette.yellow.v_1100"
+            />
+          </div>
 
-      <div class="error-message">
-        <p v-if="channels.length === 0">{{ noResourcesAvailable$() }} </p>
-        <p>
-        <KExternalLink
-          v-if="deviceContentUrl && channels.length === 0"
-          :text="$tr('adminLink')"
-          :href="deviceContentUrl"
-      />
-    </p>
-        
-      </div>
-    </div>
+          <div class="error-message">
+            <p v-if="channels.length === 0">{{ noResourcesAvailable$() }} </p>
+            <KExternalLink
+              v-if="deviceContentUrl && channels.length === 0"
+              :text="$tr('adminLink')"
+              :href="deviceContentUrl"
+            />
+          </div>
+        </div>
 
         <div class="filter-and-button">
           <p v-if="filteredExams.length && filteredExams.length > 0">
@@ -45,6 +42,7 @@
           />
           <KButtonGroup v-if="practiceQuizzesExist">
             <KButton
+              v-if="!hasNoChannels"
               primary
               hasDropdown
               :key="channels.length"
@@ -66,10 +64,10 @@
             class="button"
           >
             <KRouterLink
+              v-if="!hasNoChannels"
               :primary="true"
               appearance="raised-button"
               :to="newExamRoute"
-              :disabled="hasNoChannels"
               :key="channels.length"
               :text="newQuizAction$()"
             />
@@ -95,11 +93,15 @@
               >
                 <td>
                   <KRouterLink
+                     v-if="thereIsContent"
                     :to="$router.getRoute('QuizSummaryPage', { quizId: exam.id })"
                     appearance="basic-link"
                     :text="exam.title"
                     icon="quiz"
                   />
+                  <span v-else>
+                  {{ exam.title }}
+                </span>
                 </td>
 
                 <td>
@@ -400,7 +402,6 @@
         return '';
       },
       hasNoChannels() {
-        console.log('Channels:', this.channels);
         return !this.channels || this.channels.length === 0;
       },
 
@@ -416,14 +417,6 @@
         this.$store.dispatch('createSnackbar', this.$route.query.snackbar);
       }
     },
-    created() {
-      this.fetchResources();
-    },
-    watch: {
-  channels() {
-    console.log('Channels array changed:', this.channels);
-  }
-},
     methods: {
       handleOpenQuiz(quizId) {
         const promise = ExamResource.saveModel({
@@ -476,14 +469,12 @@
       fetchResources(){
         ChannelResource.fetchCollection({
           getParams: {
+            contains_exercise: true,
             available: true,
-
+            contains_quiz:  true,
             },
           }).then(data => {
-            console.log("Fetched channels: ", data);  // Check the output here
             this.channels = data;
-          }).catch(error => {
-            console.error("Error fetching channels: ", error);
           });
       },
     },
@@ -542,9 +533,10 @@
     max-width: 1000px;
     padding-left: 2em;
     margin: 1em auto 0;
+    padding:0.5em;
   }
 
-  .icon {
+  .warning-icon {
     position: absolute;
     top: 1em;
     left: 1em;
@@ -553,9 +545,12 @@
   }
 
   .error-message {
-    margin: 0 1em 0 2em;
+    margin-left:3em;
     font-size: 14px;
   }
 
+  .banner-spacing{
+    margin:0 0 1em 0;
+  }
 
 </style>
