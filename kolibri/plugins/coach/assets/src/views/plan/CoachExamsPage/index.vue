@@ -21,7 +21,7 @@
           </div>
 
           <div class="error-message">
-            <p v-if="channels.length === 0">{{ noResourcesAvailable$() }} </p>
+            <p v-if="channels.length === 0">{{ noResourcesAvailable$() }}</p>
             <KExternalLink
               v-if="deviceContentUrl && channels.length === 0"
               :text="$tr('adminLink')"
@@ -69,7 +69,7 @@
               :text="newQuizAction$()"
             />
           </div>
-        </div> 
+        </div>
         <CoreTable>
           <template #headers>
             <th>{{ titleLabel$() }}</th>
@@ -396,15 +396,14 @@
       hasNoChannels() {
         return !this.channels || this.channels.length === 0;
       },
-
     },
     data() {
       return {
         channels: [],
       };
-    },  
+    },
     mounted() {
-      this.fetchResources();  // Call the method to fetch the resources
+      this.fetchResources(); // Call the method to fetch the resources
       if (this.$route.query.snackbar) {
         this.$store.dispatch('createSnackbar', this.$route.query.snackbar);
       }
@@ -458,16 +457,16 @@
         nextRoute.name = nextRouteName;
         this.$router.push(nextRoute);
       },
-      fetchResources(){
+      fetchResources() {
         ChannelResource.fetchCollection({
           getParams: {
             contains_exercise: true,
             available: true,
-            contains_quiz:  true,
-            },
-          }).then(data => {
-            this.channels = data;
-          });
+            contains_quiz: true,
+          },
+        }).then(data => {
+          this.channels = data;
+        });
       },
     },
     $trs: {
@@ -523,9 +522,9 @@
     position: relative;
     width: 100%;
     max-width: 1000px;
+    padding: 0.5em;
     padding-left: 2em;
     margin: 1em auto 0;
-    padding:0.5em;
   }
 
   .warning-icon {
@@ -537,12 +536,12 @@
   }
 
   .error-message {
-    margin-left:3em;
+    margin-left: 3em;
     font-size: 14px;
   }
 
-  .banner-spacing{
-    margin:0 0 1em 0;
+  .banner-spacing {
+    margin: 0 0 1em;
   }
 
 </style>

@@ -32,7 +32,7 @@
         <template #default="{ items }">
           <CoreTable
             :selectable="true"
-            :emptyMessage="noLearnersEnrolled$({className :className })"
+            :emptyMessage="noLearnersEnrolled$({ className: className })"
           >
             <template #headers>
               <th class="table-checkbox-header">
@@ -108,13 +108,11 @@
     components: { CoreTable, PaginatedListContainer },
     mixins: [commonCoreStrings, commonCoachStrings],
     setup() {
-      const {
-        noLearnersEnrolled$
-      } = enhancedQuizManagementStrings; 
+      const { noLearnersEnrolled$ } = enhancedQuizManagementStrings;
 
       return {
-        noLearnersEnrolled$
-      }
+        noLearnersEnrolled$,
+      };
     },
     props: {
       // If true, the main checkbox is checked and the list of learners is shown
