@@ -83,6 +83,13 @@
         </KButtonGroup>
       </slot>
     </BottomAppBar>
+
+    <PicturePasswordSequenceModal
+      v-if="showPicturePasswordModal"
+      :picturePassword="assignedPicturePassword"
+      :picturePasswordSettings="targetFacilityPicturePasswordSettings"
+      @confirm="redirectBrowser()"
+    />
   </div>
 
 </template>
@@ -101,6 +108,8 @@
   import urls from 'kolibri/urls';
   import client from 'kolibri/client';
   import { getTaskString } from 'kolibri-common/uiText/tasks';
+  import FacilityUserResource from 'kolibri-common/apiResources/FacilityUserResource';
+  import PicturePasswordSequenceModal from 'kolibri-common/components/PicturePasswordSequenceModal';
 
   export default {
     name: 'MergeFacility',
@@ -109,7 +118,7 @@
         title: this.$tr('documentTitle'),
       };
     },
-    components: { BottomAppBar },
+    components: { BottomAppBar, PicturePasswordSequenceModal },
     mixins: [commonCoreStrings],
     setup() {
       const changeFacilityService = inject('changeFacilityService');
@@ -117,6 +126,11 @@
       const taskId = computed(() => get(state, 'value.taskId', null));
       const task = ref(null);
       const taskError = ref(false);
+      const showPicturePasswordModal = ref(false);
+      const assignedPicturePassword = ref(null);
+      const targetFacilityPicturePasswordSettings = computed(() =>
+        get(state, 'value.targetFacility.picture_password_settings', null),
+      );
       let isPolling = true;
       let isTaskRequested = false;
       const taskCompleted = computed(() =>
@@ -282,7 +296,20 @@
           method: 'POST',
           data: params,
         }).then(() => {
-          redirectBrowser();
+          if (targetFacilityPicturePasswordSettings.value !== null) {
+            return FacilityUserResource.fetchModel({ id: params.pk, force: true })
+              .then(user => {
+                if (user.picture_password) {
+                  assignedPicturePassword.value = user.picture_password;
+                  showPicturePasswordModal.value = true;
+                } else {
+                  redirectBrowser();
+                }
+              })
+              .catch(() => redirectBrowser());
+          } else {
+            redirectBrowser();
+          }
         });
       }
 
@@ -334,6 +361,10 @@
         successfullyJoined,
         errorMessage,
         windowIsSmall,
+        showPicturePasswordModal,
+        assignedPicturePassword,
+        targetFacilityPicturePasswordSettings,
+        redirectBrowser,
       };
     },
 

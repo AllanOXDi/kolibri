@@ -1,5 +1,6 @@
 import { mount, createLocalVue } from '@vue/test-utils';
 import TaskResource from 'kolibri/apiResources/TaskResource';
+import FacilityUserResource from 'kolibri-common/apiResources/FacilityUserResource';
 import { TaskStatuses } from 'kolibri-common/utils/syncTaskUtils';
 import redirectBrowser from 'kolibri/utils/redirectBrowser';
 import client from 'kolibri/client';
@@ -16,8 +17,11 @@ jest.mock('kolibri/apiResources/TaskResource', () => ({
   startTask: jest.fn(),
   clear: jest.fn(),
 }));
+jest.mock('kolibri-common/apiResources/FacilityUserResource', () => ({
+  fetchModel: jest.fn(),
+}));
 
-function makeWrapper({ taskId = 'task_1' } = {}) {
+function makeWrapper({ taskId = 'task_1', targetFacility = {} } = {}) {
   return mount(MergeFacility, {
     provide: {
       changeFacilityService: {
@@ -26,10 +30,10 @@ function makeWrapper({ taskId = 'task_1' } = {}) {
       },
       state: {
         value: {
-          targetFacility: { name: 'Test Facility', url: 'http://url1' },
+          targetFacility: { name: 'Test Facility', url: 'http://url1', ...targetFacility },
           fullname: 'Test User 1',
           username: 'test1',
-          targetAccount: { username: 'test2' },
+          targetAccount: { username: 'test2', id: 'user-2' },
           taskId,
         },
       },
@@ -44,7 +48,7 @@ const task = {
   status: TaskStatuses.PENDING,
   percentage: 0,
   facility_id: 'facility_id1',
-  extra_metadata: { facility_name: 'Test Facility' },
+  extra_metadata: { facility_name: 'Test Facility', token: 'test-token' },
 };
 const incompleteTask = { ...task, status: TaskStatuses.PENDING };
 const completedTask = { ...task, status: TaskStatuses.COMPLETED };
@@ -117,5 +121,68 @@ describe(`ChangeFacility/ConfirmMerge`, () => {
 
     await wrapper.vm.$nextTick();
     expect(sendMachineEvent).toHaveBeenCalledWith('TASKERROR');
+  });
+});
+
+describe('ChangeFacility/MergeFacility picture password modal', () => {
+  const picturePasswordSettings = { icon_style: 'colorful', show_icon_text: true };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    TaskResource.fetchModel.mockResolvedValue(completedTask);
+  });
+
+  it('shows the picture password modal when targetFacility has picture_password_settings and user has picture_password', async () => {
+    client.mockResolvedValue({});
+    FacilityUserResource.fetchModel.mockResolvedValue({ picture_password: '3.7.12' });
+
+    const wrapper = makeWrapper({
+      targetFacility: { picture_password_settings: picturePasswordSettings },
+    });
+    await global.flushPromises();
+    await wrapper.vm.$nextTick();
+
+    clickFinishButton(wrapper);
+    await global.flushPromises();
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.vm.showPicturePasswordModal).toBe(true);
+    expect(wrapper.vm.assignedPicturePassword).toBe('3.7.12');
+    expect(redirectBrowser).not.toHaveBeenCalled();
+  });
+
+  it('redirects without showing modal when user has no picture_password', async () => {
+    client.mockResolvedValue({});
+    FacilityUserResource.fetchModel.mockResolvedValue({ picture_password: null });
+
+    const wrapper = makeWrapper({
+      targetFacility: { picture_password_settings: picturePasswordSettings },
+    });
+    await global.flushPromises();
+    await wrapper.vm.$nextTick();
+
+    clickFinishButton(wrapper);
+    await global.flushPromises();
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.vm.showPicturePasswordModal).toBe(false);
+    expect(redirectBrowser).toHaveBeenCalledTimes(1);
+  });
+
+  it('redirects without showing modal when targetFacility has no picture_password_settings', async () => {
+    client.mockResolvedValue({});
+
+    const wrapper = makeWrapper({
+      targetFacility: { picture_password_settings: null },
+    });
+    await global.flushPromises();
+    await wrapper.vm.$nextTick();
+
+    clickFinishButton(wrapper);
+    await global.flushPromises();
+    await wrapper.vm.$nextTick();
+
+    expect(FacilityUserResource.fetchModel).not.toHaveBeenCalled();
+    expect(redirectBrowser).toHaveBeenCalledTimes(1);
   });
 });
