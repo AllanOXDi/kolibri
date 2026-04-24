@@ -135,6 +135,29 @@
         </div>
       </form>
 
+      <div v-if="showPicturePasswordForm">
+        <UiAlert
+          v-if="picturePasswordLoginError"
+          type="error"
+          :dismissible="false"
+        >
+          {{ $tr('incorrectPicturePassword') }}
+        </UiAlert>
+        <PicturePasswordGrid
+          :iconStyle="picturePasswordSettings.icon_style"
+          :showIconText="picturePasswordSettings.show_icon_text"
+          :wrongSequence="picturePasswordWrongSequence"
+          @submit="handlePicturePasswordSubmit"
+          @wrongSequenceHandled="picturePasswordWrongSequence = false"
+        />
+        <KButton
+          class="sign-in-username-link"
+          appearance="basic-link"
+          :text="$tr('signInWithUsernameAction')"
+          @click="showUsernameFormOverride = true"
+        />
+      </div>
+
       <!--
           USERS LIST
           Shows users in a list of buttons to be selected from.
@@ -174,6 +197,7 @@
   import UsersList from '../UsersList';
   import commonUserStrings from '../commonUserStrings';
   import SignInHeading from './SignInHeading';
+  import PicturePasswordGrid from './PictureLogin/PicturePasswordGrid';
 
   const MAX_USERS_FOR_LISTING_VIEW = 16;
 
@@ -190,6 +214,7 @@
       UiAutocompleteSuggestion,
       UiAlert,
       UsersList,
+      PicturePasswordGrid,
     },
     mixins: [commonCoreStrings, commonUserStrings],
     setup() {
@@ -212,6 +237,9 @@
         busy: false,
         loginError: null,
         usernameSubmittedWithoutPassword: false,
+        picturePasswordWrongSequence: false,
+        picturePasswordLoginError: false,
+        showUsernameFormOverride: false,
       };
     },
     computed: {
@@ -231,8 +259,16 @@
           (this.passwordMissing || this.invalidCredentials || this.usernameSubmittedWithoutPassword)
         );
       },
+      picturePasswordSettings() {
+        return get(this.selectedFacility, 'dataset.picture_password_settings', null);
+      },
+      showPicturePasswordForm() {
+        return (
+          !!this.picturePasswordSettings && !this.showPasswordForm && !this.showUsernameFormOverride
+        );
+      },
       showUsernameForm() {
-        return !this.showPasswordForm && !this.showUsersList;
+        return !this.showPasswordForm && !this.showUsersList && !this.showPicturePasswordForm;
       },
       passwordMissing() {
         return this.loginError === LoginErrors.PASSWORD_MISSING;
@@ -349,6 +385,9 @@
         this.passwordBlurred = false;
         this.usernameSubmittedWithoutPassword = false;
         this.loginError = null;
+        this.picturePasswordWrongSequence = false;
+        this.picturePasswordLoginError = false;
+        this.showUsernameFormOverride = false;
       },
       // Sets the selected list user and/or logs them in
       setSelectedUsername(username) {
@@ -497,6 +536,32 @@
           this.busy = false;
         }
       },
+      async handlePicturePasswordSubmit(sequence) {
+        this.busy = true;
+        this.picturePasswordLoginError = false;
+        const sessionPayload = {
+          picture_password: sequence,
+          facility: this.selectedFacility.id,
+        };
+        if (this.nextParam) {
+          sessionPayload['next'] = this.nextParam;
+        }
+        try {
+          const err = await this.login(sessionPayload);
+          if (err) {
+            if (err === LoginErrors.USER_NOT_FOUND) {
+              this.picturePasswordLoginError = true;
+              this.picturePasswordWrongSequence = true;
+            } else {
+              this.loginError = err;
+            }
+          }
+        } catch (error) {
+          this.loginError = error;
+        } finally {
+          this.busy = false;
+        }
+      },
       suggestionStyle(i) {
         return {
           backgroundColor: this.highlightedIndex === i ? this.$themePalette.grey.v_300 : '',
@@ -530,6 +595,15 @@
         message: 'Change user',
         context:
           'Link to change the user account which the user uses to sign in if they have more than one account.\n',
+      },
+      incorrectPicturePassword: {
+        message: 'Incorrect picture password',
+        context: 'Error shown when the learner selects the wrong 3-icon sequence during sign-in.',
+      },
+      signInWithUsernameAction: {
+        message: 'Sign in with a username instead',
+        context:
+          'Link shown on the picture password sign-in screen to switch to username-based sign-in.',
       },
     },
   };
