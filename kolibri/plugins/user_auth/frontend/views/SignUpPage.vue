@@ -102,6 +102,13 @@
     >
       <LanguageSwitcherFooter />
     </div>
+
+    <PicturePasswordSequenceModal
+      v-if="showPicturePasswordModal"
+      :picturePassword="assignedPicturePassword"
+      :picturePasswordSettings="facilityConfig.picture_password_settings"
+      @confirm="doRedirect"
+    />
   </div>
 
 </template>
@@ -124,6 +131,7 @@
   import commonCoreStrings from 'kolibri/uiText/commonCoreStrings';
   import useFacility from 'kolibri-common/composables/useFacility';
   import { handleApiError } from 'kolibri/utils/appError';
+  import PicturePasswordSequenceModal from 'kolibri-common/components/PicturePasswordSequenceModal';
   import { ComponentMap } from '../constants';
   import { SignUpResource } from '../apiResource';
   import LanguageSwitcherFooter from './LanguageSwitcherFooter';
@@ -147,6 +155,7 @@
       PasswordTextbox,
       UsernameTextbox,
       PrivacyLinkAndModal,
+      PicturePasswordSequenceModal,
     },
     mixins: [commonCoreStrings, commonUserStrings],
     setup() {
@@ -170,11 +179,13 @@
         birthYear: '',
         caughtErrors: [],
         busy: false,
+        showPicturePasswordModal: false,
+        assignedPicturePassword: null,
       };
     },
     computed: {
       atFirstStep() {
-        return !this.$route.query.step || this.$route.query.step === 1;
+        return !this.$route.query.step || Number(this.$route.query.step) === 1;
       },
       firstStepIsValid() {
         return every([this.nameValid, this.usernameValid, this.passwordValid]);
@@ -201,6 +212,13 @@
       }
     },
     methods: {
+      doRedirect() {
+        if (this.nextParam) {
+          redirectBrowser(this.nextParam);
+        } else {
+          redirectBrowser();
+        }
+      },
       checkForDuplicateUsername(username) {
         if (!username) {
           return Promise.resolve();
@@ -278,11 +296,17 @@
             birth_year: this.birthYear || DEFERRED,
           };
           SignUpResource.saveModel({ data: payload })
-            .then(() => {
-              if (this.nextParam) {
-                redirectBrowser(this.nextParam);
+            .then(newUser => {
+              if (
+                this.facilityConfig.picture_password_settings !== null &&
+                this.facilityConfig.picture_password_settings !== undefined &&
+                newUser.picture_password
+              ) {
+                this.assignedPicturePassword = newUser.picture_password;
+                this.showPicturePasswordModal = true;
+                this.busy = false;
               } else {
-                redirectBrowser();
+                this.doRedirect();
               }
             })
             .catch(error => {
