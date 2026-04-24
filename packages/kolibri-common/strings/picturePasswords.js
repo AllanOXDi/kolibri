@@ -193,4 +193,19 @@ export const picturePasswordStrings = createTranslator('PicturePasswordStrings',
     message: 'There are no learners in this class',
     context: 'Shown on the all passwords page when the class has no enrolled learners',
   },
+  yourPicturePassword: {
+    message: 'Your picture password',
+    context:
+      'Title of the modal shown after account creation, telling the learner what their assigned picture password is.',
+  },
+  rememberThisSequence: {
+    message: 'Remember this sequence — you will use it to sign in',
+    context:
+      'Instruction shown in the picture password confirmation modal, asking the learner to memorise their 3-icon sign-in sequence.',
+  },
+  readyToContinue: {
+    message: "I'm ready to continue",
+    context:
+      'Checkbox label in the picture password confirmation modal; learner must check this before the continue button is enabled.',
+  },
 });
