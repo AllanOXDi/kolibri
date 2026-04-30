@@ -1,10 +1,18 @@
 import { mount, createLocalVue } from '@vue/test-utils';
+import { render, screen } from '@testing-library/vue';
+import userEvent from '@testing-library/user-event';
+import '@testing-library/jest-dom';
 import TaskResource from 'kolibri/apiResources/TaskResource';
 import FacilityUserResource from 'kolibri-common/apiResources/FacilityUserResource';
 import { TaskStatuses } from 'kolibri-common/utils/syncTaskUtils';
 import redirectBrowser from 'kolibri/utils/redirectBrowser';
 import client from 'kolibri/client';
+import { picturePasswordStrings } from 'kolibri-common/strings/picturePasswords';
+import { coreStrings } from 'kolibri/uiText/commonCoreStrings';
 import MergeFacility from '../MergeFacility';
+
+const { yourPicturePassword$, readyToContinue$ } = picturePasswordStrings;
+const { continueAction$ } = coreStrings;
 
 const localVue = createLocalVue();
 const sendMachineEvent = jest.fn();
@@ -127,60 +135,88 @@ describe(`ChangeFacility/ConfirmMerge`, () => {
 describe('ChangeFacility/MergeFacility picture password modal', () => {
   const picturePasswordSettings = { icon_style: 'colorful', show_icon_text: true };
 
+  function renderComponent(targetFacility = {}) {
+    return render(MergeFacility, {
+      provide: {
+        changeFacilityService: {
+          send: sendMachineEvent,
+          state: { value: 'syncChangeFacility' },
+        },
+        state: {
+          value: {
+            targetFacility: { name: 'Test Facility', url: 'http://url1', ...targetFacility },
+            fullname: 'Test User 1',
+            username: 'test1',
+            targetAccount: { username: 'test2', id: 'user-2' },
+            taskId: 'task_1',
+          },
+        },
+      },
+    });
+  }
+
   beforeEach(() => {
     jest.clearAllMocks();
     TaskResource.fetchModel.mockResolvedValue(completedTask);
   });
 
   it('shows the picture password modal when targetFacility has picture_password_settings and user has picture_password', async () => {
+    const user = userEvent.setup();
     client.mockResolvedValue({});
     FacilityUserResource.fetchModel.mockResolvedValue({ picture_password: '3.7.12' });
 
-    const wrapper = makeWrapper({
-      targetFacility: { picture_password_settings: picturePasswordSettings },
-    });
+    renderComponent({ picture_password_settings: picturePasswordSettings });
     await global.flushPromises();
-    await wrapper.vm.$nextTick();
 
-    clickFinishButton(wrapper);
+    await user.click(await screen.findByTestId('finishButton'));
     await global.flushPromises();
-    await wrapper.vm.$nextTick();
 
-    expect(wrapper.vm.showPicturePasswordModal).toBe(true);
-    expect(wrapper.vm.assignedPicturePassword).toBe('3.7.12');
+    expect(await screen.findByText(yourPicturePassword$())).toBeInTheDocument();
     expect(redirectBrowser).not.toHaveBeenCalled();
   });
 
+  it('triggers redirectBrowser after confirming the modal', async () => {
+    const user = userEvent.setup();
+    client.mockResolvedValue({});
+    FacilityUserResource.fetchModel.mockResolvedValue({ picture_password: '3.7.12' });
+
+    renderComponent({ picture_password_settings: picturePasswordSettings });
+    await global.flushPromises();
+
+    await user.click(await screen.findByTestId('finishButton'));
+    await global.flushPromises();
+    await screen.findByText(yourPicturePassword$());
+
+    await user.click(screen.getByRole('checkbox', { name: readyToContinue$() }));
+    await user.click(screen.getByRole('button', { name: continueAction$() }));
+
+    expect(redirectBrowser).toHaveBeenCalledTimes(1);
+  });
+
   it('redirects without showing modal when user has no picture_password', async () => {
+    const user = userEvent.setup();
     client.mockResolvedValue({});
     FacilityUserResource.fetchModel.mockResolvedValue({ picture_password: null });
 
-    const wrapper = makeWrapper({
-      targetFacility: { picture_password_settings: picturePasswordSettings },
-    });
+    renderComponent({ picture_password_settings: picturePasswordSettings });
     await global.flushPromises();
-    await wrapper.vm.$nextTick();
 
-    clickFinishButton(wrapper);
+    await user.click(await screen.findByTestId('finishButton'));
     await global.flushPromises();
-    await wrapper.vm.$nextTick();
 
-    expect(wrapper.vm.showPicturePasswordModal).toBe(false);
+    expect(screen.queryByText(yourPicturePassword$())).not.toBeInTheDocument();
     expect(redirectBrowser).toHaveBeenCalledTimes(1);
   });
 
   it('redirects without showing modal when targetFacility has no picture_password_settings', async () => {
+    const user = userEvent.setup();
     client.mockResolvedValue({});
 
-    const wrapper = makeWrapper({
-      targetFacility: { picture_password_settings: null },
-    });
+    renderComponent({ picture_password_settings: null });
     await global.flushPromises();
-    await wrapper.vm.$nextTick();
 
-    clickFinishButton(wrapper);
+    await user.click(await screen.findByTestId('finishButton'));
     await global.flushPromises();
-    await wrapper.vm.$nextTick();
 
     expect(FacilityUserResource.fetchModel).not.toHaveBeenCalled();
     expect(redirectBrowser).toHaveBeenCalledTimes(1);

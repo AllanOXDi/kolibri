@@ -18,10 +18,16 @@ describe('getPicturePasswordIcons', () => {
       expect(result[2]).toMatchObject({ label: 'charlie' });
     });
 
-    it('does not include icon name properties when iconStyle is omitted', () => {
+    it('falls back to standard iconName and does not include iconColorful when iconStyle is omitted', () => {
       const result = getPicturePasswordIcons('1');
+      expect(result[0]).toMatchObject({ iconName: 'alphaStandard', iconStandard: 'alphaStandard' });
       expect(result[0]).not.toHaveProperty('iconColorful');
-      expect(result[0]).not.toHaveProperty('iconStandard');
+    });
+
+    it('falls back to standard iconName when iconStyle is an unrecognised value', () => {
+      const result = getPicturePasswordIcons('1', 'unknown');
+      expect(result[0]).toMatchObject({ iconName: 'alphaStandard', iconStandard: 'alphaStandard' });
+      expect(result[0]).not.toHaveProperty('iconColorful');
     });
 
     it('includes iconColorful when iconStyle is "colorful"', () => {

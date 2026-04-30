@@ -1,22 +1,26 @@
 <template>
 
+  <!-- cancelDisabled prevents ESC from dismissing this modal: it is a mandatory
+       gate — the learner must acknowledge their picture password before proceeding. -->
   <KModal
     :title="yourPicturePassword$()"
     :submitText="coreString('continueAction')"
     :submitDisabled="!confirmed"
+    :cancelDisabled="true"
     @submit="$emit('confirm')"
   >
     <p>{{ rememberThisSequence$() }}</p>
     <ol class="picture-password-icons">
       <li
         v-for="(icon, index) in icons"
-        :key="`${icon.label}-${index}`"
+        :key="index"
       >
         <figure>
           <KIcon
             class="icon"
             :icon="icon.iconName"
-            :aria-label="icon.label"
+            :aria-label="showIconText ? undefined : icon.label"
+            :aria-hidden="showIconText ? true : undefined"
           />
           <figcaption
             v-if="showIconText"
@@ -27,6 +31,7 @@
         </figure>
       </li>
     </ol>
+    <p>{{ coachCanHelp$() }}</p>
     <KCheckbox
       v-model="confirmed"
       :label="readyToContinue$()"
@@ -49,7 +54,7 @@
     setup(props) {
       const confirmed = ref(false);
 
-      const { yourPicturePassword$, rememberThisSequence$, readyToContinue$ } =
+      const { yourPicturePassword$, rememberThisSequence$, coachCanHelp$, readyToContinue$ } =
         picturePasswordStrings;
 
       const icons = computed(() =>
@@ -64,6 +69,7 @@
         showIconText,
         yourPicturePassword$,
         rememberThisSequence$,
+        coachCanHelp$,
         readyToContinue$,
       };
     },
@@ -92,28 +98,28 @@
     padding: 0;
     margin: 16px 0;
     list-style: none;
+  }
 
-    li {
-      margin: 0;
-    }
+  .picture-password-icons li {
+    margin: 0;
+  }
 
-    figure {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin: 0;
-    }
+  .picture-password-icons figure {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+  }
 
-    .icon {
-      // 46px renders a raw icon of roughly 32px, matching design spec
-      width: 46px;
-      height: 46px;
-    }
+  .picture-password-icons .icon {
+    // 46px renders a raw icon of roughly 32px, matching design spec
+    width: 46px;
+    height: 46px;
+  }
 
-    figcaption {
-      margin-top: 4px;
-      font-size: 12px;
-    }
+  .picture-password-icons figcaption {
+    margin-top: 4px;
+    font-size: 12px;
   }
 
 </style>

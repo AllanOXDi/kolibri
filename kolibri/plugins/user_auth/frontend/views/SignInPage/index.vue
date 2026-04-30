@@ -143,6 +143,13 @@
         >
           {{ $tr('incorrectPicturePassword') }}
         </UiAlert>
+        <UiAlert
+          v-else-if="loginError"
+          type="error"
+          :dismissible="false"
+        >
+          {{ coreString('defaultErrorMessage') }}
+        </UiAlert>
         <PicturePasswordGrid
           :iconStyle="picturePasswordSettings.icon_style"
           :showIconText="picturePasswordSettings.show_icon_text"
@@ -168,7 +175,7 @@
           state management and event (signIn) handling
         -->
       <UsersList
-        v-if="showUsersList && !showPasswordForm"
+        v-if="showUsersList && !showPasswordForm && !showPicturePasswordForm"
         :users="usernamesForCurrentFacility"
         :busy="busy"
         @userSelected="setSelectedUsername"
@@ -264,7 +271,10 @@
       },
       showPicturePasswordForm() {
         return (
-          !!this.picturePasswordSettings && !this.showPasswordForm && !this.showUsernameFormOverride
+          !!this.picturePasswordSettings &&
+          !this.showPasswordForm &&
+          !this.showUsernameFormOverride &&
+          !this.showUsersList
         );
       },
       showUsernameForm() {

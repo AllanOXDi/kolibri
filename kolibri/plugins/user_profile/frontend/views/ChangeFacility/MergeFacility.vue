@@ -71,14 +71,14 @@
             :primary="true"
             :text="coreString('finishAction')"
             data-testid="finishButton"
-            @click="to_finish"
+            @click="toFinish"
           />
           <KButton
             v-if="taskError"
             :primary="true"
             :text="coreString('retryAction')"
             data-testid="retryButton"
-            @click="to_retry"
+            @click="toRetry"
           />
         </KButtonGroup>
       </slot>
@@ -88,7 +88,7 @@
       v-if="showPicturePasswordModal"
       :picturePassword="assignedPicturePassword"
       :picturePasswordSettings="targetFacilityPicturePasswordSettings"
-      @confirm="redirectBrowser()"
+      @confirm="handleModalConfirm"
     />
   </div>
 
@@ -100,9 +100,10 @@
   import commonCoreStrings from 'kolibri/uiText/commonCoreStrings';
   import useKResponsiveWindow from 'kolibri-design-system/lib/composables/useKResponsiveWindow';
   import BottomAppBar from 'kolibri/components/BottomAppBar';
-  import { computed, inject, onMounted, ref } from 'vue';
+  import { computed, getCurrentInstance, inject, onMounted, ref } from 'vue';
   import TaskResource from 'kolibri/apiResources/TaskResource';
   import get from 'lodash/get';
+  import logger from 'kolibri-logging';
   import { syncStatusToDescriptionMap, TaskStatuses } from 'kolibri-common/utils/syncTaskUtils';
   import redirectBrowser from 'kolibri/utils/redirectBrowser';
   import urls from 'kolibri/urls';
@@ -110,6 +111,8 @@
   import { getTaskString } from 'kolibri-common/uiText/tasks';
   import FacilityUserResource from 'kolibri-common/apiResources/FacilityUserResource';
   import PicturePasswordSequenceModal from 'kolibri-common/components/PicturePasswordSequenceModal';
+
+  const logging = logger.getLogger(__filename);
 
   export default {
     name: 'MergeFacility',
@@ -121,13 +124,14 @@
     components: { BottomAppBar, PicturePasswordSequenceModal },
     mixins: [commonCoreStrings],
     setup() {
+      const instance = getCurrentInstance();
       const changeFacilityService = inject('changeFacilityService');
       const state = inject('state');
       const taskId = computed(() => get(state, 'value.taskId', null));
       const task = ref(null);
       const taskError = ref(false);
       const showPicturePasswordModal = ref(false);
-      const assignedPicturePassword = ref(null);
+      const assignedPicturePassword = ref('');
       const targetFacilityPicturePasswordSettings = computed(() =>
         get(state, 'value.targetFacility.picture_password_settings', null),
       );
@@ -278,7 +282,7 @@
         }
       }
 
-      function to_finish() {
+      function toFinish() {
         const token = task.value.extra_metadata.token;
         TaskResource.clear(taskId.value);
         changeFacilityService.send({ type: 'FINISH' });
@@ -295,25 +299,37 @@
           url: urls['kolibri:kolibri.plugins.user_profile:loginmergeduser'](),
           method: 'POST',
           data: params,
-        }).then(() => {
-          if (targetFacilityPicturePasswordSettings.value !== null) {
-            return FacilityUserResource.fetchModel({ id: params.pk, force: true })
-              .then(user => {
-                if (user.picture_password) {
-                  assignedPicturePassword.value = user.picture_password;
-                  showPicturePasswordModal.value = true;
-                } else {
+        })
+          .then(() => {
+            if (targetFacilityPicturePasswordSettings.value !== null) {
+              return FacilityUserResource.fetchModel({ id: params.pk, force: true })
+                .then(user => {
+                  if (user.picture_password) {
+                    assignedPicturePassword.value = user.picture_password;
+                    showPicturePasswordModal.value = true;
+                  } else {
+                    redirectBrowser();
+                  }
+                })
+                .catch(err => {
+                  logging.error('Failed to fetch user picture_password after merge', err);
                   redirectBrowser();
-                }
-              })
-              .catch(() => redirectBrowser());
-          } else {
+                });
+            } else {
+              redirectBrowser();
+            }
+          })
+          .catch(err => {
+            logging.error('Failed to log in as merged user', err);
             redirectBrowser();
-          }
-        });
+          });
       }
 
-      function to_retry() {
+      function handleModalConfirm() {
+        redirectBrowser();
+      }
+
+      function toRetry() {
         if (taskId.value !== null) {
           TaskResource.clear(taskId.value);
         }
@@ -328,27 +344,23 @@
         return syncFacilityTaskDisplayInfo(task.value);
       }
 
-      const successfullyJoined = computed({
-        get() {
-          return this.$tr('success', {
-            target_facility: get(state, 'value.targetFacility.name', ''),
-          });
-        },
-      });
+      const successfullyJoined = computed(() =>
+        instance.proxy.$tr('success', {
+          target_facility: get(state, 'value.targetFacility.name', ''),
+        }),
+      );
 
-      const errorMessage = computed({
-        get() {
-          const targetUsername = get(state, 'value.targetAccount.username', '');
-          const currentUsername = get(state, 'value.username', '');
-          let errorString = 'failedTaskError';
-          if (task.value !== null && get(task, 'value.status', '') !== TaskStatuses.FAILED) {
-            errorString = targetUsername !== currentUsername ? 'userExistsError' : 'userAdminError';
-          }
-          return this.$tr(errorString, {
-            username: targetUsername,
-            target_facility: get(state, 'value.targetFacility.name', ''),
-          });
-        },
+      const errorMessage = computed(() => {
+        const targetUsername = get(state, 'value.targetAccount.username', '');
+        const currentUsername = get(state, 'value.username', '');
+        let errorString = 'failedTaskError';
+        if (task.value !== null && get(task, 'value.status', '') !== TaskStatuses.FAILED) {
+          errorString = targetUsername !== currentUsername ? 'userExistsError' : 'userAdminError';
+        }
+        return instance.proxy.$tr(errorString, {
+          username: targetUsername,
+          target_facility: get(state, 'value.targetFacility.name', ''),
+        });
       });
 
       return {
@@ -356,15 +368,15 @@
         taskError,
         taskCompleted,
         taskInfo,
-        to_finish,
-        to_retry,
+        toFinish,
+        toRetry,
         successfullyJoined,
         errorMessage,
         windowIsSmall,
         showPicturePasswordModal,
         assignedPicturePassword,
         targetFacilityPicturePasswordSettings,
-        redirectBrowser,
+        handleModalConfirm,
       };
     },
 

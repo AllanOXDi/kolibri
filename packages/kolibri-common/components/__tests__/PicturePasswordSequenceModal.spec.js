@@ -1,11 +1,13 @@
 import { render, screen, fireEvent } from '@testing-library/vue';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { coreStrings } from 'kolibri/uiText/commonCoreStrings';
 import { picturePasswordStrings } from 'kolibri-common/strings/picturePasswords';
 import PicturePasswordSequenceModal from '../PicturePasswordSequenceModal.vue';
 
 const { continueAction$ } = coreStrings;
-const { yourPicturePassword$, readyToContinue$, rememberThisSequence$ } = picturePasswordStrings;
+const { yourPicturePassword$, readyToContinue$, rememberThisSequence$, coachCanHelp$ } =
+  picturePasswordStrings;
 
 jest.mock('kolibri-common/utils/picturePassword', () => ({
   getPicturePasswordIcons: jest.fn(() => [
@@ -29,6 +31,7 @@ describe('PicturePasswordSequenceModal', () => {
     renderModal();
     expect(screen.getByText(yourPicturePassword$())).toBeInTheDocument();
     expect(screen.getByText(rememberThisSequence$())).toBeInTheDocument();
+    expect(screen.getByText(coachCanHelp$())).toBeInTheDocument();
   });
 
   it('submit button is disabled initially', () => {
@@ -37,24 +40,34 @@ describe('PicturePasswordSequenceModal', () => {
   });
 
   it('submit button is enabled after checking the checkbox', async () => {
+    const user = userEvent.setup();
     renderModal();
-    const checkbox = screen.getByRole('checkbox', { name: readyToContinue$() });
-    await fireEvent.click(checkbox);
+    await user.click(screen.getByRole('checkbox', { name: readyToContinue$() }));
     expect(screen.getByRole('button', { name: continueAction$() })).toBeEnabled();
   });
 
   it('emits confirm when submit is clicked after checking the checkbox', async () => {
+    const user = userEvent.setup();
     const { emitted } = renderModal();
-    const checkbox = screen.getByRole('checkbox', { name: readyToContinue$() });
-    await fireEvent.click(checkbox);
-    await fireEvent.click(screen.getByRole('button', { name: continueAction$() }));
+    await user.click(screen.getByRole('checkbox', { name: readyToContinue$() }));
+    await user.click(screen.getByRole('button', { name: continueAction$() }));
     expect(emitted().confirm).toHaveLength(1);
   });
 
   it('does not emit confirm when submit is clicked without checking the checkbox', async () => {
+    // KModal's disabled submit has pointer-events:none, so userEvent throws;
+    // fireEvent is needed here to dispatch the click directly.
     const { emitted } = renderModal();
     await fireEvent.click(screen.getByRole('button', { name: continueAction$() }));
     expect(emitted().confirm).toBeFalsy();
+  });
+
+  it('pressing ESC keeps the modal open', async () => {
+    const user = userEvent.setup();
+    renderModal();
+    expect(screen.getByText(yourPicturePassword$())).toBeInTheDocument();
+    await user.keyboard('{Escape}');
+    expect(screen.getByText(yourPicturePassword$())).toBeInTheDocument();
   });
 
   it('shows icon labels when show_icon_text is true', () => {

@@ -21,7 +21,7 @@ jest.mock('../../apiResource', () => ({
   SignUpResource: { saveModel: jest.fn() },
 }));
 
-const { yourPicturePassword$ } = picturePasswordStrings;
+const { yourPicturePassword$, readyToContinue$ } = picturePasswordStrings;
 const { finishAction$, fullNameLabel$, usernameLabel$, passwordLabel$, continueAction$ } =
   coreStrings;
 const { confirmPasswordLabel$ } = createTranslator(PasswordTextbox.name, PasswordTextbox.$trs);
@@ -139,6 +139,17 @@ describe('picture password modal after signup', () => {
     await submitForm();
     expect(await screen.findByText(yourPicturePassword$())).toBeInTheDocument();
     expect(redirectBrowser).not.toHaveBeenCalled();
+  });
+
+  it('triggers redirectBrowser after confirming the modal', async () => {
+    SignUpResource.saveModel.mockResolvedValue({ picture_password: '3.7.12' });
+    renderWithPictureLogin();
+    await submitForm();
+    await screen.findByText(yourPicturePassword$());
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('checkbox', { name: readyToContinue$() }));
+    await user.click(screen.getByRole('button', { name: coreStrings.continueAction$() }));
+    expect(redirectBrowser).toHaveBeenCalledTimes(1);
   });
 
   it('redirects without showing the modal when picture_password is null', async () => {

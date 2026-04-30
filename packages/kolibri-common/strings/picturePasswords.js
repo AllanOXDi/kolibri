@@ -194,14 +194,20 @@ export const picturePasswordStrings = createTranslator('PicturePasswordStrings',
     context: 'Shown on the all passwords page when the class has no enrolled learners',
   },
   yourPicturePassword: {
-    message: 'Your picture password',
+    message: 'New password',
     context:
-      'Title of the modal shown after account creation, telling the learner what their assigned picture password is.',
+      'Title of the modal shown after account creation, telling the learner what their newly assigned picture password is.',
   },
   rememberThisSequence: {
-    message: 'Remember this sequence — you will use it to sign in',
+    message:
+      'Remember these pictures and write them down if you need to. You will need them to sign in to Kolibri in the future.',
     context:
-      'Instruction shown in the picture password confirmation modal, asking the learner to memorise their 3-icon sign-in sequence.',
+      'Instruction shown in the picture password confirmation modal, asking the learner to memorise and record their 3-icon sign-in sequence.',
+  },
+  coachCanHelp: {
+    message: 'If you forget, your coach can help.',
+    context:
+      'Reassurance shown below the picture password icons, letting the learner know a coach can recover their sequence.',
   },
   readyToContinue: {
     message: "I'm ready to continue",

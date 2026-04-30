@@ -180,7 +180,7 @@
         caughtErrors: [],
         busy: false,
         showPicturePasswordModal: false,
-        assignedPicturePassword: null,
+        assignedPicturePassword: '',
       };
     },
     computed: {
@@ -299,7 +299,6 @@
             .then(newUser => {
               if (
                 this.facilityConfig.picture_password_settings !== null &&
-                this.facilityConfig.picture_password_settings !== undefined &&
                 newUser.picture_password
               ) {
                 this.assignedPicturePassword = newUser.picture_password;

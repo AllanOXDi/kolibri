@@ -76,7 +76,7 @@
 <script>
 
   import { useLocalStorage, useMemoize, computedAsync, get } from '@vueuse/core';
-  import { computed, ref, watch, inject } from 'vue';
+  import { computed, getCurrentInstance, ref, watch, inject } from 'vue';
   import commonCoreStrings from 'kolibri/uiText/commonCoreStrings';
   import commonSyncElements from 'kolibri-common/mixins/commonSyncElements';
   import { NetworkLocationResource } from 'kolibri-common/apiResources/NetworkLocationResource';
@@ -133,7 +133,7 @@
                 learner_can_sign_up: facility.learner_can_sign_up,
                 learner_can_login_with_no_password: facility.learner_can_login_with_no_password,
                 kolibri_version: device.kolibri_version,
-                picture_password_settings: facility.picture_password_settings || null,
+                picture_password_settings: facility.picture_password_settings ?? null,
               };
             });
           } catch (e) {
@@ -167,7 +167,7 @@
           for (const deviceFacilities of facilitiesFromDevices) {
             for (const facility of deviceFacilities) {
               // deduplicate the same facility across more than one device
-              if (!facility[facility.id]) {
+              if (!facilities[facility.id]) {
                 facilities[facility.id] = facility;
               }
             }
@@ -206,11 +206,12 @@
       });
 
       const { createSnackbar } = useSnackbar();
+      const instance = getCurrentInstance();
 
       function handleAddedAddress() {
         forceFetch();
-        createSnackbar(this.$tr('addDeviceSnackbarText'));
-        this.showAddAddressModal = false;
+        createSnackbar(instance.proxy.$tr('addDeviceSnackbarText'));
+        showAddAddressModal.value = false;
       }
 
       function resetSelectedAddress() {
@@ -262,7 +263,7 @@
             id: facility.id,
             learner_can_sign_up: facility.learner_can_sign_up,
             learner_can_login_with_no_password: facility.learner_can_login_with_no_password,
-            picture_password_settings: facility.picture_password_settings || null,
+            picture_password_settings: facility.picture_password_settings ?? null,
           },
         });
       },

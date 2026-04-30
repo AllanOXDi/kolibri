@@ -1,5 +1,8 @@
+import logger from 'kolibri-logging';
 import { PICTURE_PASSWORD_SET } from 'kolibri/constants';
 import { PicturePasswordIconStyle } from '../constants/Auth';
+
+const logging = logger.getLogger(__filename);
 
 /**
  * Resolves a `picture_password` string into an ordered array of icon descriptor objects.
@@ -15,15 +18,17 @@ export function getPicturePasswordIcons(picturePassword, iconStyle = null) {
   return picturePassword
     .split('.')
     .map(segment => {
-      const key = String(parseInt(segment, 10));
+      const key = String(Number(segment));
       const entry = PICTURE_PASSWORD_SET[key];
       if (!entry) {
+        logging.warn(`Unknown picture password icon key: "${segment}"`);
         return null;
       }
       const result = { label: entry.name };
       if (iconStyle === PicturePasswordIconStyle.COLORFUL) {
         result.iconName = result.iconColorful = entry.iconColorful;
-      } else if (iconStyle === PicturePasswordIconStyle.STANDARD) {
+      } else {
+        // Covers PicturePasswordIconStyle.STANDARD and any unrecognised/null value
         result.iconName = result.iconStandard = entry.iconStandard;
       }
       return result;
